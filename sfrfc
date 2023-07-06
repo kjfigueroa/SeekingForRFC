@@ -1,0 +1,156 @@
+#!/bin/bash
+#
+#       By: Kevin J. Figueroa M
+#       July, 2023
+#
+#       Source from The RFC Series (ISSN 2070-1721):
+#       Source RFC editor URL: https://www.rfc-editor.org/rfc/ 
+#
+# According to the The Internet Society (https://www.internetsociety.org/)
+# The RFC Series (ISSN 2070-1721) contains technical and organizational 
+# documents about the Internet, including the specifications and policy 
+# documents produced by five streams: the Internet Engineering Task Force (IETF), 
+# the Internet Research Task Force (IRTF), the Internet Architecture Board (IAB), 
+# Independent Submissions, and Editorial.
+# Although Many RFCs have Informational or Experimental status and do not represent 
+# any kind of standard, they contain information that may be useful or important 
+# to retain in this archival document series. 
+
+# Sources and Locals Vars
+ var1=$1; var2=$2
+ getIndex="https://www.rfc-editor.org/rfc/rfc-index.txt"
+ parent2RFC='https://www.rfc-editor.org/rfc/'
+ comp="[a-zA-Z0-9]"
+ wildcomp="$(echo @)"
+# End: Sources and Locals Vars
+
+# Help 
+ help()
+ {
+        echo -e "\n\tHi! To use the script you must indicate at least two search patterns.\n" 
+        echo -e "\tAs follows:"
+        echo -e "\tFor example, you can indicate the name of a \e[1;93mtechnology\e[0m or \e[1;93mprotocol\e[0m" 
+        echo -e "\tas the first search \e[1mpattern\e[0m, and accompany it with a second search" 
+        echo -e "\t\e[1mpattern\e[0m as a description of it,"
+        echo -e "\tsuch as \e[1;93mimplementation\e[0m or the word \e[1;93mconfiguration\e[0m.\n"
+        echo -e "\tFor example:"
+        echo -e "\n\t$\e[32m./sfrfc\e[0m \e[1;32mdns implementation\e[0m\n"
+        echo -e "\tIf you want, you can use a single search \e[1mpattern\e[0m by" 
+        echo -e "\tentering only one variable, but specifying the second input to be \e[1;93m@\e[0m (at)." 
+        echo -e "\n\tSomething like this:"
+        echo -e "\n\t$\e[32m./sfrfc\e[0m \e[1;32mdns @\e[0m\n"
+        echo -e "\t\t\t\tGood look! .. ツ\n"
+ }
+# End: Help
+
+# Indicator
+ spinProgress()
+ {
+     local pid=$!
+     local delay=0.75
+     local spinstr='|/-\'
+     while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+         local temp=${spinstr#?}
+         printf " %c  " "$spinstr"
+         local spinstr=$temp${spinstr%"$temp"}
+         sleep $delay
+         printf "\b\b\b\b\b\b"
+     done
+     printf "    \b\b\b\b"
+ }
+# End: Indicator
+
+# Getting an Index
+ getIndex(){
+    wget -q -O index.txt $getIndex & spinProgress
+ 	savef="$(pwd)/index.txt"
+    if [ $? -eq 0 ]; then
+        cat $savef |egrep '^[0-9]' > indexref.txt 2>/dev/null; 
+        savef2="$(pwd)/indexref.txt" && rm -f $savef
+        nl="$(egrep -c '^[0-9]' $savef2 2>/dev/null)"
+    elif [ $? -eq 0 ]; then
+        sed -i 's/^/"/g' $savef2 && sed -i 's/ /" "/1' $savef2 && sed -i 's/$/..." \\/g' $savef2
+        gI="0"
+        else
+            echo -e "\nExiting by error in block getIndex,\n"
+    fi
+ }
+# End: Getting an Index
+
+# Menu Options
+ options(){
+    nl="$(egrep -c '^[0-9]' $savef3)"
+    while read -r nu te; do
+    	options+=( ${nu//\"} "${te//\"}" )
+    done < $savef3
+    nll=$(($nl + "10"))
+    value=$(whiptail \
+        --title "Searching for RFC" \
+        --menu "Matchs of: $var1 and $var2 among $nll results" \
+        0 10 $nll \
+        "${options[@]}" \
+        3>&1 1>&2 2>&3)
+    rm -f $savef3
+    url2get="$parent2RFC/rfc$value.txt"
+	wget -q -O $value.txt $url2get & spinProgress
+	catched="$value.txt"
+    if [[ $(wc -l $catched |awk '{print $1}') != "0" ]]; then
+	    less $catched
+        echo -e "\n\tSearch: \"$var1\",\"$var2\" saved as: \e[1;32m$value.txt\e[0m.\n"
+        else
+            echo -e "\n\tSearch cancelled.\n"
+            exit 0
+    fi    
+ }
+# End: Menu Options
+
+# Main
+ main(){
+    getIndex 
+    if [[ $gI -eq "0" ]]; then
+            vpmf="0"
+            if [[ $var2 =~ "@" ]]; then
+                grep -iw "$var1" $savef2 > indexref3.txt; savef3="$(pwd)/indexref3.txt" && rm -f $savef2
+                if [[ $(wc -l $savef3 |awk '{print $1}') -ne "0" ]]; then
+                    vpmf="1"
+                    else
+                        echo -e "\n\t\e[1mNo matches for:\e[0m $var1, $var2.\n"
+                        rm -f $savef3
+                        exit 0
+                fi    
+            elif [[ $var2 =~ $comp ]]; then
+                grep -Eiw "$var1.*$var2" $savef2 > indexref3.txt; savef3="$(pwd)/indexref3.txt" && rm -f $savef2
+                if [[ $(wc -l $savef3 |awk '{print $1}') -ne "0" ]]; then
+                    vpmf="2"
+                    else
+                        echo -e "\n\t\e[1mNo matches for:\e[0m $var1, $var2.\n"
+                        rm -f $savef3
+                        exit 0
+                fi
+            fi
+            if [[ $vpmf -eq "1" ]]; then
+                options $savef3
+            elif [[ $vpmf -eq "2" ]]; then
+                options $savef3
+            fi
+        else
+        echo -e "\n\tExiting by error in Block Main.\n"
+    fi
+    exit 0
+ }
+# End: Main
+
+# Input Check
+ if [[ $# == 2 ]]; then
+    if [[ $var1 =~ $comp && $var2 =~ $comp ]] || [[ $var1 =~ $comp && $var2 =~ $wildcomp ]];then
+        main
+        exit 0
+    fi
+ elif [[ "$var1" == "help" ]] || [[ $var1 == "h" ]]; then
+         help
+         exit 0
+    else
+         echo -e "\n\t\e[91mError\e[0m in arguments: please type \e[1;32mhelp (h)\e[0m for a usage description.\n"
+         exit 0
+ fi
+# End: Input Check
