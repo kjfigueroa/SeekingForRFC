@@ -109,7 +109,7 @@
     getIndex 
     if [[ $gI -eq "0" ]]; then
             vpmf="0"
-            if [[ $var2 =~ "@" ]]; then
+            if [[ $var1 =~ $comp ]] && [[ $var2 =~ "@" ]]; then
                 grep -iw "$var1" $savef2 > indexref3.txt; savef3="$(pwd)/indexref3.txt" && rm -f $savef2
                 if [[ $(wc -l $savef3 |awk '{print $1}') -ne "0" ]]; then
                     vpmf="1"
@@ -118,7 +118,7 @@
                         rm -f $savef3
                         exit 0
                 fi    
-            elif [[ $var2 =~ $comp ]]; then
+            elif [[ $var1 =~ $comp ]] && [[ $var2 =~ $comp ]]; then
                 grep -Eiw "$var1.*$var2" $savef2 > indexref3.txt; savef3="$(pwd)/indexref3.txt" && rm -f $savef2
                 if [[ $(wc -l $savef3 |awk '{print $1}') -ne "0" ]]; then
                     vpmf="2"
@@ -127,14 +127,19 @@
                         rm -f $savef3
                         exit 0
                 fi
+            elif [[ $var1 =~ "@" ]] && [[ $var2 =~ "@" ]]; then
+                cat $savef2 > indexref3.txt; savef3="$(pwd)/indexref3.txt" && rm -f $savef2 
+                vpmf="3"
             fi
             if [[ $vpmf -eq "1" ]]; then
                 options $savef3
             elif [[ $vpmf -eq "2" ]]; then
                 options $savef3
+            elif [[ $vpmf -eq "3" ]]; then
+                options $savef3
             fi
         else
-        echo -e "\n\tExiting by error in Block Main.\n"
+            echo -e "\n\tExiting by error in Block Main.\n"
     fi
     exit 0
  }
@@ -142,7 +147,7 @@
 
 # Input Check
  if [[ $# == 2 ]]; then
-    if [[ $var1 =~ $comp && $var2 =~ $comp ]] || [[ $var1 =~ $comp && $var2 =~ $wildcomp ]];then
+    if [[ $var1 =~ $comp && $var2 =~ $comp ]] || [[ $var1 =~ $comp && $var2 =~ $wildcomp ]] || [[ $var1 =~ $wildcomp && $var2 =~ $wildcomp ]];then
         main
         exit 0
     fi
