@@ -10,24 +10,15 @@ Although Many RFCs have Informational or Experimental status and do not represen
 ## How to:
 The flow is segmented into three parts: a main function, an index wrapper, and an options menu. 
 
-A normal usage description (**help [h]**) is provided as follows:
+### Usage:
+For example, you can indicate the name of a technology or protocol as the first search pattern, and accompany it with a second search pattern as a description of it, such as implementation or the word configuration.
+
+```sh
+$./sfrfc dns implementation
 ```
-As follows:
-	For example, you can indicate the name of a technology or protocol
-	as the first search pattern, and accompany it with a second search
-	pattern as a description of it,
-	such as implementation or the word configuration.
-
-	For example:
-
-	$./sfrfc dns implementation
-
-	If you want, you can use a single search pattern by
-	entering only one variable, but specifying the second input to be @ (at).
-
-	Something like this:
-
-	$./sfrfc dns @
+If you want, you can use a single search pattern by entering only one variable, but specifying the second input to be `@` (at).
+```sh
+$./sfrfc dns @
 ```
 
 https://github.com/kjfigueroa/SeekingForRFC/assets/68950531/24567456-b591-4671-bb36-eb80fd03fec5
